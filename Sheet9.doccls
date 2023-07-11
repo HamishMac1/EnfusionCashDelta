@@ -1,0 +1,23 @@
+﻿Private Sub CommandButton1_Click()
+
+Workbooks.Open (NewestFile("S:\Enfusion", "PROD_GL Cash Transactions ITD-*", ".xls"))
+
+Dim newdata As Worksheet
+Dim ndatarng As Range
+Set newdata = ActiveWorkbook.Worksheets("Sheet 1")
+Set ndatarng = newdata.Range("A1").CurrentRegion
+
+ndatarng.Copy
+
+Workbooks("Enfusion LTS Cash Activity For Delta File.xlsm").Worksheets("Current Data").Range("C1").PasteSpecial Paste:=xlPasteValues
+        
+Application.DisplayAlerts = False
+ActiveWorkbook.Close
+Application.DisplayAlerts = True
+
+ThisWorkbook.Sheets("Control").Select
+
+MsgBox "Import Complete"
+
+
+End Sub

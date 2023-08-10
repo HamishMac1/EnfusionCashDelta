@@ -204,9 +204,9 @@ Application.Calculation = xlCalculationAutomatic
             Application.CutCopyMode = False
         End If
         'set Report Date to iRecs Business Date (max of report date)
-        Set rng = Range("AO1").Offset(1, 0)
+
+        Set rng = Range("1:1").Find("Settle Date").Offset(1, 0)
         Set rng = Range(rng, rng.End(xlDown))
-        
         dt = Application.WorksheetFunction.Max(rng)
         'rng.Value = Format(dt, "DD/MM/YYYY")
         rng.Value = dt
@@ -289,7 +289,7 @@ Application.ScreenUpdating = True
 End Sub
 Public Sub Export_csv()
 Dim wbNew As Workbook
-Dim ws As Worksheet
+Dim ws As Worksheet, wsC As Workbook
 Dim c As Range, c2 As Range
 Dim dt As Date
 Dim iRow As Single
@@ -321,8 +321,8 @@ Do Until c.Value = "" Or c.Column = 100
     '        c.Select
         dt = Application.WorksheetFunction.Max(c2)
         dt = Format(dt, "dd/mm/yyyy")
-        Set c2 = Sheets("Current Data").Range("AP2")
-        dt = Application.WorksheetFunction.Max(c2, Application.WorksheetFunction.Max(c2))
+'        Set c2 = ws.Range(Range("Am2"), Range("Am2").End(xlDown)) ' THIS NEEDS TO UPDATE IF THE COL MOVES
+ '       dt = Application.WorksheetFunction.Max(c2)
 '        Select Case dt
 '        Case Format(Now(), "dd/mm/yyyy") ' if mod date is today then BD=Previosu BD
 '            dt = Format(Application.WorksheetFunction.WorkDay_Intl(dt, -1), "dd/mm/yyyy")
@@ -375,9 +375,12 @@ Sheets("Control").Activate
 MsgBox "File has been saved successfully in Datafiles and Backup in the archive"
 End Sub
 Public Sub Copy_Current_to_Previous()
+Dim wbThis As Workbook
 Dim ws As Worksheet
 Dim i As Integer
 Dim b As String
+
+Set wbThis = ThisWorkbook
 
 i = MsgBox("Are you sure you want to copy contents of 'Current Data' tab to 'Previous Data' tab", vbYesNo)
 If i = 7 Then Exit Sub
@@ -424,6 +427,7 @@ If Range("UnmatchedCurrent").Value <> 0 Then
     Range("A1").Select
 End If
 ws.Activate
+Range("C21").Value = Range("_FileCurr").Value
 Application.Calculation = b
 Application.DisplayAlerts = True
 Application.ScreenUpdating = True
@@ -454,15 +458,18 @@ Function NewestFile(Directory, FileNameStart, FileSpec)
     
 End Function
 Sub Import_Latest_Enfusion_Data()
-Dim TW As Workbook
+Dim TW As Workbook, wbNew As Workbook
+Dim newdata As Worksheet
+Dim ndatarng As Range
+Dim str As String
+
 Set TW = ThisWorkbook
 
 Application.DisplayAlerts = False
 
-Workbooks.Open (NewestFile(Range("_Dir").Value, "PROD_GL Cash Transactions ITD-*", ".xls"))
+Set wbNew = Workbooks.Open(NewestFile(Range("_Dir").Value, "PROD_GL Cash Transactions ITD-*", ".xls"))
+str = wbNew.Name
 
-Dim newdata As Worksheet
-Dim ndatarng As Range
 Set newdata = ActiveWorkbook.Worksheets("Sheet 1")
 Set ndatarng = newdata.Range("A1").CurrentRegion
 
@@ -470,22 +477,74 @@ ndatarng.Copy
 
 TW.Worksheets("Current Data").Range("C1").PasteSpecial Paste:=xlPasteValues
         
-ActiveWorkbook.Close
+wbNew.Close
 
 Sheets("Current Data").Select
 Rows("2:2").Select
-Selection.Copy
+Selection.Copy 'copy formats
 Range(Selection, ActiveCell.SpecialCells(xlLastCell)).Select
 Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
-    SkipBlanks:=False, Transpose:=False
+    SkipBlanks:=False, Transpose:=False 'paste formats
 Range("A2").Select
 Application.CutCopyMode = False
 
 Application.DisplayAlerts = True
 
 ThisWorkbook.Sheets("Control").Select
+Range("_FileCurr").Value = str
+MsgBox "Imported " & str
 
-MsgBox "Import Complete"
+End Sub
+
+Sub Import_Latest_Enfusion_Balances()
+Dim TW As Workbook, wbBal As Workbook
+Dim newdata As Worksheet
+Dim ndatarng As Range
+Dim rng As Range
+Dim ws As Worksheet
+Dim str As String
+
+Set TW = ActiveWorkbook
+
+Application.DisplayAlerts = False
+'delete old data
+Set ws = TW.Worksheets("Bal")
+ws.Activate
+ActiveCell.SpecialCells(xlLastCell).Select
+Set rng = ActiveCell
+ws.Range(Range("A2"), rng).ClearContents
+
+str = Range("_Dir").Value
+
+Workbooks.Open (NewestFile(str, "PROD_Cash_Balances_PBD_TradeDate_*", ".xlsx"))
+
+Set wbBal = ActiveWorkbook
+Set newdata = wbBal.Worksheets("Sheet 1")
+newdata.Activate
+ActiveCell.SpecialCells(xlLastCell).Select
+Set rng = ActiveCell
+
+Set ndatarng = newdata.Range(Range("A2"), rng)
+ndatarng.Copy
+
+ws.Range("a2").PasteSpecial Paste:=xlPasteValues
+str = wbBal.Name
+wbBal.Close
+
+ws.Select
+Rows("2:2").Select
+Selection.Copy 'copy formats
+Range(Selection, ActiveCell.SpecialCells(xlLastCell)).Select
+Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+    SkipBlanks:=False, Transpose:=False 'paste formats
+Range("A2").Select
+Application.CutCopyMode = False
+
+Application.DisplayAlerts = True
+
+TW.Sheets("Control").Select
+
+MsgBox str & " Import Complete"
 
 End Sub
 

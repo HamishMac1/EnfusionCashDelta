@@ -9,13 +9,13 @@ Public Sub Last_Cell_CleanUp(Optional ws As Worksheet)
 'If ws is not specified then runs for all sheets in activeworkbook
 'ReReferences LastCell to actual last cell in sheet
 Dim i As Single
-Dim Str As String
+Dim str As String
 'Dim ws As Worksheet
 Dim rng As Range
 Dim w As Worksheet
 
 'Dim N As Single
-Str = Application.Calculation
+str = Application.Calculation
 Set rng = ActiveCell
 Application.Calculation = xlCalculationManual
 If Not ws Is Nothing Then
@@ -35,7 +35,7 @@ On Error Resume Next
 rng.Activate
 On Error GoTo 0
 
-Application.Calculation = Str
+Application.Calculation = str
 End Sub
 Public Sub DeleteUnusedFormats()
      Dim lLastRow As Long, lLastColumn As Long
@@ -114,7 +114,7 @@ Public Function DirMax_x2(strDir As String, Optional str1 As String) As Variant
 'Find most recent File with a date in it's name
 '
 
-Dim StrFile As String, Str As String
+Dim StrFile As String, str As String
 Dim dtRec As Date, dtMax As Date
 Dim iYear As Integer, iMonth As Integer, iDay As Integer, iRow As Integer
 
@@ -126,10 +126,10 @@ StrFile = Dir(strDir & "*" & str1 & "*")
 'find max date of pos file
 Do While StrFile <> ""
     
-    Str = Mid(StrFile, InStr(1, StrFile, "201", 1), 8) ', "yyyymmdd")
-    iYear = Left(Str, 4)
-    iMonth = Mid(Str, 5, 2)
-    iDay = Right(Str, 2)
+    str = Mid(StrFile, InStr(1, StrFile, "201", 1), 8) ', "yyyymmdd")
+    iYear = Left(str, 4)
+    iMonth = Mid(str, 5, 2)
+    iDay = Right(str, 2)
     dtRec = DateSerial(iYear, iMonth, iDay)
     If dtRec > dtMax Then
         dtMax = dtRec
@@ -173,15 +173,15 @@ Sub dp()
 End Sub
 
 
-Public Function FwdSlash(Str As String)
+Public Function FwdSlash(str As String)
 
-If Str = "" Then
+If str = "" Then
     FwdSlash = ""
 Else
-    If Right(Str, 1) <> "\" Then
-        Str = Str & "\"
+    If Right(str, 1) <> "\" Then
+        str = str & "\"
     End If
-    FwdSlash = Str
+    FwdSlash = str
 End If
 
 
